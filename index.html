@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Mini Music Player</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      body { font-family: Arial; text-align: center; padding: 20px; }
+      button { font-size: 20px; padding: 10px 20px; margin: 10px; }
+    </style>
+</head>
+<body>
+
+<h2>🎵 Музыкальный плеер</h2>
+
+<button id="playBtn">▶ Play</button>
+<button id="stopBtn">⏹ Stop</button>
+
+<audio id="audio">
+  <!-- Вставь сюда свою музыку -->
+  <source src="/Users/carti/PycharmProjects/AI/EsDeeKid - 4 Raws.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const tg = window.Telegram.WebApp;
+
+// Прочитать параметр startapp
+// Telegram сохраняет его в initDataUnsafe.start_param
+const startParam = tg.initDataUnsafe?.start_param || "";
+console.log("start_param:", startParam);
+
+// Получаем audio
+const audio = document.getElementById("audio");
+
+// Кнопки
+document.getElementById("playBtn").onclick = () => {
+    audio.play().catch(err => console.error(err));
+};
+
+document.getElementById("stopBtn").onclick = () => {
+    audio.pause();
+    audio.currentTime = 0;
+};
+
+// Уведомляем Telegram что веб-приложение готово
+tg.ready();
+</script>
+
+</body>
+</html>
