@@ -1,49 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Mini Music Player</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-      body { font-family: Arial; text-align: center; padding: 20px; }
-      button { font-size: 20px; padding: 10px 20px; margin: 10px; }
-    </style>
+<meta charset="UTF-8">
+<title>Music Player</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  background: #0e0e0e;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.player {
+  width: 100%;
+  max-width: 360px;
+  padding: 24px;
+  text-align: center;
+}
+
+.cover {
+  width: 280px;
+  height: 280px;
+  border-radius: 16px;
+  object-fit: cover;
+  margin-bottom: 20px;
+  background: #222;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.artist {
+  font-size: 16px;
+  color: #aaa;
+  margin-bottom: 30px;
+}
+
+.play-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  background: #1db954;
+  font-size: 28px;
+  cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-<h2>🎵 Музыкальный плеер</h2>
+<div class="player">
+  <img id="cover" class="cover" src="" alt="cover">
+  <div id="title" class="title">Загрузка…</div>
+  <div id="artist" class="artist"></div>
 
-<button id="playBtn">▶ Play</button>
-<button id="stopBtn">⏹ Stop</button>
+  <button id="playBtn" class="play-btn">▶</button>
 
-<audio id="audio">
-  <!-- Вставь сюда свою музыку -->
-  <source src="EsDeeKid - Rottweiler.mp3" type="audio/mpeg">
-</audio>
+  <audio id="audio" src="EsDeeKid - Rottweiler.mp3"></audio>
+</div>
 
 <script>
-const tg = window.Telegram.WebApp;
+const tg = Telegram.WebApp;
+tg.expand();
 
-// Прочитать параметр startapp
-// Telegram сохраняет его в initDataUnsafe.start_param
-const startParam = tg.initDataUnsafe?.start_param || "";
-console.log("start_param:", startParam);
-
-// Получаем audio
 const audio = document.getElementById("audio");
+const playBtn = document.getElementById("playBtn");
+const titleEl = document.getElementById("title");
+const artistEl = document.getElementById("artist");
+const coverEl = document.getElementById("cover");
 
-// Кнопки
-document.getElementById("playBtn").onclick = () => {
-    audio.play().catch(err => console.error(err));
-};
+let playing = false;
 
-document.getElementById("stopBtn").onclick = () => {
+// ▶️ Play / Pause
+playBtn.onclick = () => {
+  if (!playing) {
+    audio.play();
+    playBtn.textContent = "⏸";
+  } else {
     audio.pause();
-    audio.currentTime = 0;
+    playBtn.textContent = "▶";
+  }
+  playing = !playing;
 };
 
-// Уведомляем Telegram что веб-приложение готово
-tg.ready();
+// 🎵 ЧИТАЕМ МЕТАДАННЫЕ ИЗ MP3
+jsmediatags.read(audio.src, {
+  onSuccess: function(tag) {
+    const tags = tag.tags;
+
+    titleEl.textContent = tags.title || "Без названия";
+    artistEl.textContent = tags.artist || "";
+
+    // 🖼️ Обложка
+    if (tags.picture) {
+      const { data, format } = tags.picture;
+      let base64String = "";
+      for (let i = 0; i < data.length; i++) {
+        base64String += String.fromCharCode(data[i]);
+      }
+      coverEl.src = `data:${format};base64,${btoa(base64String)}`;
+    } else {
+      coverEl.src = "https://via.placeholder.com/300x300?text=No+Cover";
+    }
+  },
+  onError: function(error) {
+    titleEl.textContent = "Ошибка чтения MP3";
+    console.log(error);
+  }
+});
 </script>
 
 </body>
